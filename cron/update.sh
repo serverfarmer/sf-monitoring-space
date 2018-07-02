@@ -1,4 +1,5 @@
 #!/bin/bash
+. /etc/farmconfig
 . /opt/farm/scripts/functions.custom
 
 require="12288000"  # 12GB
