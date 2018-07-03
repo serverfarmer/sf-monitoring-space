@@ -2,17 +2,34 @@
 . /etc/farmconfig
 . /opt/farm/scripts/functions.custom
 
-require="12288000"  # 12GB
 enough=""
+
+check_space() {
+	directory=$1
+	require=$2
+
+	if [ "$directory" != "/" ]; then
+		label="$directory"
+	else
+		label="/rootfs"
+	fi
+
+	space=`df -k $directory |tail -n1 |awk '{ print $4 }'`
+	if [[ $space -gt $require ]]; then
+		enough="$enough,space$label"
+	fi
+}
+
 
 dirs=`cat /etc/local/.config/space-check.directories |grep -v ^# |grep -v ^$ |sort |uniq`
 
 for dir in $dirs; do
-	space=`df -k $dir |tail -n1 |awk '{ print $4 }'`
-	if [[ $space -gt $require ]]; then
-		enough="$enough,space$dir"
-	fi
+	check_space $dir 12288000  # 12GB
 done
+
+check_space /boot 81920  # 80MB
+check_space / 524288  # 512MB
+
 
 if [ "$enough" != "" ]; then
 	if [ -s /etc/local/.config/heartbeat.url ]; then
